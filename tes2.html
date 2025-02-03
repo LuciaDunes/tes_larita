@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js" integrity="sha512-2rNj2KJ+D8s1ceNasTIex6z4HWyOnEYLVC3FigGOmyQCZc2eBXKgOxQmo3oKLHyfcj53uz4QMsRCWNbLd32Q1g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js" integrity="sha512-L0Shl7nXXzIlBSUUPpxrokqq4ojqgZFQczTYlGjzONGTDAcLremjwaWv5A+EDLnxhQzY5xUZPWLOLqYRkY0Cbw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <style>
+            @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css");
+
+            .body {
+                background-color: #444444;
+            }
+
+            .card {
+                background-color: #fff;
+                border-radius: 10px;
+                border: none;
+                position: relative;
+                margin-bottom: 30px;
+                box-shadow: 0 0.46875rem 2.1875rem rgba(90,97,105,0.1), 0 0.9375rem 1.40625rem rgba(90,97,105,0.1), 0 0.25rem 0.53125rem rgba(90,97,105,0.12), 0 0.125rem 0.1875rem rgba(90,97,105,0.1);
+            }
+            
+            .card .card-block {
+                padding: 25px;
+            }
+
+            .card .card-statistic-3 .card-icon {
+                text-align: center;
+                line-height: 50px;
+                margin-left: 15px;
+                color: #000;
+                position: absolute;
+                right: 5px;
+                top: 20px;
+                opacity: 0.1;
+            }
+            
+            .card .card-statistic-3 .card-icon-large .fas, .card .card-statistic-3 .card-icon-large .far, .card .card-statistic-3 .card-icon-large .fab, .card .card-statistic-3 .card-icon-large .fal, .card .card-statistic-3 .card-icon-large .fa-solid {
+                font-size: 100px;
+            }
+
+            /**************/
+            
+            .location {
+                font-size: 50px;
+                font-weight: bold;
+                margin-top: 8%;
+            }
+
+            .time {
+                font-size: 85px;
+                font-weight: bold;
+                margin-top: 13%;
+            }
+
+            .date {
+                
+            }
+
+            .cuaca {
+                padding-bottom: 5cm;
+                font-size: 30px;
+            }
+
+            /**************/
+
+            .l-bg-cherry {
+                background: linear-gradient(to right, #493240, #a324f5) !important;
+                color: #fff;
+            }
+
+            .l-bg-blue-dark {
+                background: linear-gradient(to right, #484e5c, #327bf0) !important;
+                color: #fff;
+            }
+
+            .l-bg-green {
+                background: linear-gradient(to right, #484e5c, rgb(0, 174, 67));
+                color : #fff;
+            }
+
+            .l-bg-yellow {
+                background: linear-gradient(to right, #484e5c, rgb(210, 190, 11));
+                color: #fff;
+            }
+
+            .l-bg-orange {
+                background: linear-gradient(to right, #484e5c, rgb(219, 139, 19));
+                color: #fff;
+            }
+            
+            .order-card i {
+                font-size: 100px;
+            }
+
+            .bg-c-blue {
+                background: linear-gradient(45deg,#4099ff,#73b4ff);
+            }
+        </style>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const apiURL = "https://api.bmkg.go.id/publik/prakiraan-cuaca?adm4=35.78.04.1004";
+
+                
+                fetch(apiURL).then(response => {
+                    if(!response.ok) {
+                        throw new Error("Gagal mengambil data API");
+                    }
+                    return response.json();
+                }
+                
+                )
+                .then(data => {
+                    console.log("Data dari API BMKG: ", data);
+                    displayWeatherData(data);
+                })
+                .catch(error => {
+                    console.error("Terjadi kesalahan: ", error);
+                });
+
+                setInterval(updateTime, 60000);
+                updateTime();
+
+                /*******************************/
+
+                function displayWeatherData(data) {
+                    if (!data || !data.data || !data.data[0] || !data.data[0]?.cuaca[0] || !data.data[0]?.cuaca[0][0]) {
+                        console.error("Data cuaca tidak ditemukan!");
+                        return;
+                    }
+
+                    const lokasi = data.lokasi;
+                    const cuacaTerbaru = data.data[0]?.cuaca[0]?.[0];
+
+                    document.getElementById("location").innerText = lokasi?.kotkab || "Tidak diketahui";
+                    document.getElementById("temp").innerText = `${cuacaTerbaru?.t ?? "-"}°C`;
+                    document.getElementById("condition").innerText = `${cuacaTerbaru?.weather_desc_en ?? "-"}`;
+                    document.getElementById("windspeed").innerText = `${cuacaTerbaru?.ws ?? "-"} km/h`;
+                    document.getElementById("humidity").innerText = `${cuacaTerbaru?.hu ?? "-"}%`;
+                    //document.getElementById("visual").innerText = `${cuacaTerbaru?.vs_text ?? "-"}`;
+                    
+                    const weatherIcon = document.getElementById("weather-icon");
+                    console.log("Calling generateTemperatureChart...");
+                    console.log(data.data[0]?.cuaca[0]); // First element
+                    console.log(data.data[0]?.cuaca[1]); // Second element
+                    console.log(data.data[0]?.cuaca[2]); // Third element
+                    generateTemperatureChart(data.data[0]?.cuaca[0]); // Pass cuaca[0] to the function
+                }
+
+                function updateWeatherIcon(iconElement, description){
+                    const weatherDesc = description.toLowerCase() || "";
+
+                    if (weatherDesc.includes("sunny")) {
+                        weatherIcon.className = "bi bi-brightness-high";
+                    } else if (weatherDesc.includes("mostly cloudy")) {
+                        weatherIcon.className = "bi bi-cloud";
+                    } else if (weatherDesc.includes("partly cloudy")) {
+                        weatherIcon.className = "bi bi-cloud-sun";
+                    } else if (weatherDesc.includes("light rain")) {
+                        weatherIcon.className = "bi bi-cloud-rain";
+                    } else if (weatherDesc.includes("thunderstorm")) {
+                        weatherIcon.className = "bi bi-cloud-lightning-rain";
+                    } else if (weatherDesc.includes("thunder")) {
+                        weatherIcon.className = "bi bi-cloud-lightning";
+                    } else {
+                        weatherIcon.className = "bi bi-question-circle"; // Default
+                    }
+                }
+
+                function getTodayHourlyData(apiData) {
+
+                    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD
+                    let labels = [];
+                    let temperatures = [];
+
+                    console.log("Today's Date: " + today);
+                    
+                
+                    apiData.forEach(item => {
+                        let dateTime = item.local_datetime; // Example: "2025-02-04 14:00:00"
+                        let date = dateTime.split(" ")[0]; 
+                        let time = dateTime.split(" ")[1].substring(0, 5); // Extract HH:mm
+                
+                        if (date === today) {
+                            labels.push(time);
+                            temperatures.push(parseFloat(item.t)); // Extract temperature
+                        }
+                    });
+
+                    
+
+                    console.log("Extracted labels: ", labels);
+                    console.log("Extracted Temperatures: ", temperatures);
+                
+                    return { labels, temperatures };
+                }
+
+                function generateTemperatureChart(apiData) {
+                    const { labels, temperatures } = getTodayHourlyData(apiData);
+                    // Debug: Check if data exists
+                    if (labels.length === 0 || temperatures.length === 0) {
+                        console.warn("No temperature data available for today!");
+                        return;
+                    }
+
+                    console.log("Final Chart Labels:", labels);
+                    console.log("Final Chart Temperatures:", temperatures);
+                    
+                    const ctx = document.getElementById("hourlyTemperatureChart").getContext("2d");
+                
+                    if (window.hourlyChart) window.hourlyChart.destroy(); // Destroy old chart
+                
+                    window.hourlyChart = new Chart(ctx, {
+                        type: "line",
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: "Temperature (°C)",
+                                data: temperatures,
+                                borderColor: "red",
+                                backgroundColor: "rgba(255, 0, 0, 0.2)",
+                                borderWidth: 2,
+                                pointRadius: 5,
+                                fill: false
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { title: { display: true, text: "Time" }, ticks:{color:"white"} },
+                                y: { title: { display: true, text: "Temperature (°C)" }, ticks:{color:"white"}, beginAtZero: false }
+                            },
+                            plugins:{
+                                legend: {
+                                    labels:{color:"white"}
+                                }, 
+                            }
+                        }
+                    });
+                }
+                
+
+                function updateTime(){
+                    const now = new Date();
+                    const hours = now.getHours().toString().padStart(2, '0');
+                    const minutes = now.getMinutes().toString().padStart(2, '0');
+                    const day = now.toLocaleDateString('id-ID', { weekday: 'long' });
+                    const date = now.toLocaleDateString('id-ID', {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    });
+
+                    document.querySelector(".time").innerText = `${hours} : ${minutes}`;
+                    document.querySelector(".date").innerText = `${day}, ${date}`;
+                }
+
+                /*******************************/
+            });
+        </script>
+    </head>
+    <body style="background-color:#D9D9D9;">
+        <div class="container mt-2">
+            <h2 class="text-center" style="font-weight: bold; font-size:45px;">WEATHER DASHBOARD</h2>
+            <div class="row row-cols-3">
+                <div class="col col-xl-5 col-xs-5">
+                    <div class="card l-bg-cherry">
+                        <div class="card-statistic-3 p-5 ">
+                            <div class="mb-5">
+                                <h1 id="location" class="card-title mb-0 text-center location">-</h1>
+                                <h2 class="card-title text-center time">HH : MM</h5>
+                                <h3 class="card-title pb-5 text-center date">TODAY</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col col-md-6 col-xl-4">
+                    <div class="card l-bg-blue-dark">
+                        <div class="card-statistic-3 p-4">
+                            <div class="card-icon card-icon-large"><i class="fa-solid fa-temperature-low"></i></div>
+                            <div class="mb-4">
+                                <h5 class="card-title mb-0">Temperature</h5>
+                            </div>
+                            <div class="row align-items-center mb-2 d-flex">
+                                <div class="col-8">
+                                    <h2 id="temp" class="d-flex align-items-center mb-0" >
+                                        - 
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card l-bg-blue-dark">
+                        <div class="card-statistic-3 p-4">
+                            <div class="card-icon card-icon-large"><i class="fa-solid fa-water"></i></div>
+                            <div class="mb-4">
+                                <h5 class="card-title mb-0">Humidity</h5>
+                            </div>
+                            <div class="row align-items-center mb-2 d-flex">
+                                <div class="col-8">
+                                    <h2 id="humidity" class="d-flex align-items-center mb-0" >
+                                        - 
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card l-bg-blue-dark">
+                        <div class="card-statistic-3 p-4">
+                            <div class="card-icon card-icon-large"><i class="fa-solid fa-wind"></i></div>
+                            <div class="mb-4">
+                                <h5 class="card-title mb-0">Wind Speed</h5>
+                            </div>
+                            <div class="row align-items-center mb-2 d-flex">
+                                <div class="col-8">
+                                    <h2 id="windspeed" class="d-flex align-items-center mb-0" >
+                                        - 
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row col-md-5 col-xl-3">
+                    <div class="card l-bg-green">
+                        <div class="card-statistic-3 p-4">
+                            <div class="mb-4">
+                                <h3 id="condition" class="card-title mb-2 text-center">Condition</h3>
+                            </div>
+                            <div class="row align-items-center mb-2">
+                                <div class="col-7">
+                                    <h2 class="text-center">                                        
+                                        <i id="weather-icon" class="bi bi-cloud" alt="Ikon Cuaca" style="font-size: 48px;">
+                                            
+                                        </i>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                    <div class="col-md-5 col-xl-12">
+                        <div class="card l-bg-orange">
+                            
+                            <canvas id="hourlyTemperatureChart"></canvas>
+                        </div>
+                    </div>
+
+                
+            </div>
+        </div>
+            
+            
+              
+        </div>
+        
+    </body>
+</html>
